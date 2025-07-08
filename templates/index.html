@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered SIP Calculator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 18px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 15px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-group i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calculate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .calculate-btn:hover::before {
+            left: 100%;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .results {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .results-header h3 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .result-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .ai-advice {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            animation: slideInUp 0.5s ease-out 0.2s both;
+        }
+
+        .ai-advice h4 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ai-advice ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ai-advice li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .ai-advice li::before {
+            content: '💡';
+            position: absolute;
+            left: 0;
+        }
+
+        .error {
+            color: #dc3545;
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            font-size: 2em;
+            color: #667eea;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> AI SIP Calculator</h1>
+            <p>Intelligent investment planning with AI-powered insights</p>
+            <div class="ai-badge">
+                <i class="fas fa-robot"></i> AI-Powered
+            </div>
+        </div>
+
+        <div class="form-section">
+            <form id="sipForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="monthlyAmount">
+                            <i class="fas fa-rupee-sign"></i> Monthly Investment
+                        </label>
+                        <input type="number" id="monthlyAmount" name="monthlyAmount" placeholder="e.g., 5000" required>
+                        <i class="fas fa-coins"></i>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="annualRate">
+                            <i class="fas fa-percentage"></i> Annual Interest Rate
+                        </label>
+                        <input type="number" id="annualRate" name="annualRate" step="0.01" placeholder="e.g., 12" required>
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="years">
+                            <i class="fas fa-calendar-alt"></i> Investment Duration
+                        </label>
+                        <input type="number" id="years" name="years" step="0.1" placeholder="e.g., 10" required>
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="calculate-btn">
+                    <i class="fas fa-calculator"></i> Calculate with AI Insights
+                </button>
+            </form>
+        </div>
+
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner"></i>
+            <p>Analyzing your investment with AI...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+
+        <div class="results" id="results">
+            <div class="results-header">
+                <h3><i class="fas fa-chart-pie"></i> Your Investment Analysis</h3>
+            </div>
+            
+            <div class="result-grid">
+                <div class="result-card">
+                    <div class="result-label">Total Invested</div>
+                    <div class="result-value" id="totalInvested">₹0.00</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Estimated Returns</div>
+                    <div class="result-value" id="estimatedReturns">₹0.00</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Future Value</div>
+                    <div class="result-value" id="futureValue">₹0.00</div>
+                </div>
+            </div>
+
+            <div class="ai-advice" id="aiAdvice">
+                <h4><i class="fas fa-robot"></i> AI Investment Recommendations</h4>
+                <ul id="adviceList">
+                    <!-- AI advice will be populated here -->
+                </ul>
+            </div>
+
+            <div class="chart-container">
+                <h4><i class="fas fa-chart-bar"></i> Investment Growth Visualization</h4>
+                <div class="chart-placeholder">
+                    <i class="fas fa-chart-area"></i> Interactive charts coming soon...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('sipForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const results = document.getElementById('results');
+            
+            // Hide previous results and errors
+            error.style.display = 'none';
+            results.classList.remove('show');
+            loading.style.display = 'block';
+            
+            const formData = {
+                monthly_amount: parseFloat(document.getElementById('monthlyAmount').value),
+                annual_rate: parseFloat(document.getElementById('annualRate').value),
+                years: parseFloat(document.getElementById('years').value)
+            };
+            
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Format numbers with Indian numbering system
+                    document.getElementById('totalInvested').textContent = 
+                        '₹' + data.total_invested.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    document.getElementById('estimatedReturns').textContent = 
+                        '₹' + data.estimated_returns.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    document.getElementById('futureValue').textContent = 
+                        '₹' + data.future_value.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    
+                    // Generate AI advice
+                    generateAIAdvice(formData, data);
+                    
+                    results.classList.add('show');
+                } else {
+                    error.textContent = data.error || 'An error occurred while calculating.';
+                    error.style.display = 'block';
+                }
+            } catch (err) {
+                error.textContent = 'Network error. Please try again.';
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        function generateAIAdvice(inputs, results) {
+            const adviceList = document.getElementById('adviceList');
+            const advice = [];
+            
+            // Calculate some metrics for AI analysis
+            const monthlyAmount = inputs.monthly_amount;
+            const annualRate = inputs.annual_rate;
+            const years = inputs.years;
+            const totalInvested = results.total_invested;
+            const returns = results.estimated_returns;
+            const futureValue = results.future_value;
+            
+            // AI Analysis and Recommendations
+            if (monthlyAmount < 5000) {
+                advice.push("Consider increasing your monthly investment to ₹5,000+ for better wealth accumulation");
+            }
+            
+            if (annualRate < 8) {
+                advice.push("Your expected return rate is conservative. Consider diversified equity funds for higher returns");
+            } else if (annualRate > 15) {
+                advice.push("Your expected return rate is optimistic. Ensure realistic expectations and proper risk management");
+            }
+            
+            if (years < 5) {
+                advice.push("Short-term investments are riskier. Consider extending to 5+ years for better stability");
+            }
+            
+            if (returns > totalInvested * 0.5) {
+                advice.push("Excellent potential returns! This shows the power of compound interest over time");
+            }
+            
+            // Risk assessment
+            if (annualRate > 12 && years < 3) {
+                advice.push("High return expectations with short duration may be risky. Consider longer investment horizon");
+            }
+            
+            // Tax efficiency advice
+            if (monthlyAmount > 10000) {
+                advice.push("Consider ELSS funds for tax benefits under Section 80C (₹1.5L limit)");
+            }
+            
+            // Emergency fund advice
+            if (monthlyAmount > 15000) {
+                advice.push("Ensure you have 6 months of expenses as emergency fund before heavy SIP investments");
+            }
+            
+            // Inflation consideration
+            advice.push("Remember that inflation (6-7% annually) will reduce your real returns over time");
+            
+            // Display advice
+            adviceList.innerHTML = advice.map(item => `<li>${item}</li>`).join('');
+        }
+    </script>
+</body>
+</html> 
